@@ -130,6 +130,7 @@ localparam CONF_STR = {
 ////////////////////   CLOCKS   ///////////////////
 
 assign CLK_VIDEO = clk_sys;
+assign CE_PIXEL = 1;
 
 wire locked;
 wire clk_sys;
