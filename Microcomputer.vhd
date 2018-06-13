@@ -23,9 +23,9 @@ entity Microcomputer is
 		RESET_N 		: in std_logic;
 		SDRAM_nCS	: out std_logic;
 
-		VGA_R  	 	: out std_logic_vector(5 downto 0); --std_logic_vector(7 downto 0); ?
-		VGA_G    	: out std_logic_vector(5 downto 0); --std_logic_vector(7 downto 0); ?
-		VGA_B   		: out std_logic_vector(5 downto 0); --std_logic_vector(7 downto 0); ?
+		VGA_R  	 	: out std_logic_vector(3 downto 0);
+		VGA_G    	: out std_logic_vector(3 downto 0);
+		VGA_B   		: out std_logic_vector(3 downto 0);
 
 		VGA_HS		: out std_logic;
 		VGA_VS		: out std_logic;
@@ -81,15 +81,8 @@ architecture struct of Microcomputer is
 	signal ps2Clk						: std_logic;
 	signal ps2Data						: std_logic;
 
-	signal switches       : std_logic_vector(1 downto 0);
-	signal buttons        : std_logic_vector(1 downto 0);
-	signal r1 : std_logic;
-	signal r2 : std_logic;
-	signal g1 : std_logic;
-	signal g2 : std_logic;
-	signal b1 : std_logic;
-	signal b2 : std_logic;
-	
+	signal switches       			: std_logic_vector(1 downto 0);
+	signal buttons        			: std_logic_vector(1 downto 0);
 begin
   
 -- ____________________________________________________________________________________
@@ -144,12 +137,12 @@ io1 : entity work.SBCTextDisplayRGB
 		-- RGB video signals
 		hSync => VGA_HS,
 		vSync => VGA_VS,
-		videoR0 => r1,
-		videoR1 => r2,
-		videoG0 => g1,
-		videoG1 => g2,
-		videoB0 => b1,
-		videoB1 => b2,
+		videoR0 => VGA_R(2),
+		videoR1 => VGA_R(3),
+		videoG0 => VGA_G(2),
+		videoG1 => VGA_G(3),
+		videoB0 => VGA_B(2),
+		videoB1 => VGA_B(3),
 
 		n_wr => n_interface1CS or n_ioWR,
 		n_rd => n_interface1CS or n_ioRD,
@@ -160,10 +153,6 @@ io1 : entity work.SBCTextDisplayRGB
 		ps2Clk => ps2Clk,
 		ps2Data => ps2Data
 	);
-
-VGA_R <= (r1,r2,r1,r2,r1,r2);
-VGA_G <= (g1,g2,g1,g2,g1,g2);
-VGA_B <= (b1,b2,b1,b2,b1,b2);
 
 -- ____________________________________________________________________________________
 -- MEMORY READ/WRITE LOGIC GOES HERE

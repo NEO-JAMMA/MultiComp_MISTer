@@ -107,15 +107,12 @@ module emu
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 
-assign AUDIO_S   = 1;
-assign AUDIO_MIX = status[3:2];
-
 assign LED_USER  = 0;
 assign LED_DISK  = 0;
 assign LED_POWER = 0;
 
-assign VIDEO_ARX = status[5:4] ? 8'd16 : 8'd4;
-assign VIDEO_ARY = status[5:4] ? 8'd9  : 8'd3;
+assign VIDEO_ARX = 4;
+assign VIDEO_ARY = 3;
 
 localparam CONF_BDI   = "(BDI)";
 localparam CONF_PLUSD = "(+D) ";
@@ -129,29 +126,20 @@ localparam CONF_STR = {
 
 ////////////////////   CLOCKS   ///////////////////
 
-assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = 1;
-
 wire locked;
 wire clk_sys;
+
 
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys),
-	.outclk_1(SDRAM_CLK),
-	.locked(locked)
+	.outclk_0(clk_sys)
 );
 
 //////////////////   HPS I/O   ///////////////////
-wire [15:0] joy_0;
-wire [15:0] joy_1;
-wire [15:0] joya_0;
-wire [15:0] joya_1;
 wire  [1:0] buttons;
 wire [31:0] status;
-wire [24:0] ps2_mouse;
 
 wire PS2_CLK;
 wire PS2_DAT;
@@ -166,9 +154,6 @@ wire  [8:0] sd_buff_addr;
 wire  [7:0] sd_buff_dout;
 wire  [7:0] sd_buff_din;
 wire        sd_buff_wr;
-wire        img_mounted;
-wire        img_readonly;
-wire [63:0] img_size;
 wire        sd_ack_conf;
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
@@ -177,11 +162,6 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.HPS_BUS(HPS_BUS),
 
 	.conf_str(CONF_STR),
-
-	.joystick_0(joy_0),
-	.joystick_1(joy_1),
-	.joystick_analog_0(joya_0),
-	.joystick_analog_1(joya_1),
 
 	.buttons(buttons),
 	.status(status),
@@ -193,8 +173,6 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.ps2_kbd_led_use(0),
 	.ps2_kbd_led_status(0),
 
-	.ps2_mouse(ps2_mouse),
-
 	.sd_lba(sd_lba),
 	.sd_rd(sd_rd),
 	.sd_wr(sd_wr),
@@ -203,13 +181,17 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.sd_buff_addr(sd_buff_addr),
 	.sd_buff_dout(sd_buff_dout),
 	.sd_buff_din(sd_buff_din),
-	.sd_buff_wr(sd_buff_wr),
-	.img_mounted(img_mounted),
-	.img_readonly(img_readonly),
-	.img_size(img_size),
-
-	.ioctl_wait(0)
+	.sd_buff_wr(sd_buff_wr)
 );
+
+/////////////////  RESET  /////////////////////////
+
+wire reset = RESET | status[0] | buttons[1] | status[6];
+
+///////////////////////////////////////////////////
+
+assign CLK_VIDEO = clk_sys;
+assign CE_PIXEL = 1;
 
 Microcomputer Microcomputer(
 		.RESET_N(RESET),
