@@ -86,7 +86,7 @@ BEGIN
 		clock_enable_input_a => "BYPASS",
 		clock_enable_output_a => "BYPASS",
 		init_file => "../ROMS/6809/EXT_BASIC_NO_USING.hex",
-		intended_device_family => "Cyclone II",
+		intended_device_family => "Cyclone",
 		lpm_hint => "ENABLE_RUNTIME_MOD=NO",
 		lpm_type => "altsyncram",
 		numwords_a => 8192,

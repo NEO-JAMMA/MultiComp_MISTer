@@ -104,19 +104,16 @@ module emu
 	output        SDRAM_nWE
 );
 
-assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
+assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
 
-assign LED_USER  = 0;
+assign LED_USER  = reset;
 assign LED_DISK  = 0;
 assign LED_POWER = 0;
 
-assign VIDEO_ARX = 4;
-assign VIDEO_ARY = 3;
+//assign VIDEO_ARX = 4;
+//assign VIDEO_ARY = 3;
 
-localparam CONF_BDI   = "(BDI)";
-localparam CONF_PLUSD = "(+D) ";
-localparam CONF_PLUS3 = "(+3) ";
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -125,17 +122,15 @@ localparam CONF_STR = {
 
 
 ////////////////////   CLOCKS   ///////////////////
-
-wire locked;
-wire clk_sys;
-
-
+wire locked, clk_sys;
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys)
+	.outclk_0(clk_sys),
+	.locked(locked)
 );
+
 
 //////////////////   HPS I/O   ///////////////////
 wire  [1:0] buttons;
@@ -167,26 +162,39 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.status(status),
 	.forced_scandoubler(forced_scandoubler),
 
-	.ps2_kbd_clk_out(PS2_CLK),
-	.ps2_kbd_data_out(PS2_DAT),
-	
-	.ps2_kbd_led_use(0),
-	.ps2_kbd_led_status(0),
-
-	.sd_lba(sd_lba),
-	.sd_rd(sd_rd),
-	.sd_wr(sd_wr),
-	.sd_ack(sd_ack),
-	.sd_ack_conf(sd_ack_conf),
-	.sd_buff_addr(sd_buff_addr),
-	.sd_buff_dout(sd_buff_dout),
-	.sd_buff_din(sd_buff_din),
-	.sd_buff_wr(sd_buff_wr)
+//	.ps2_kbd_clk_out(PS2_CLK),
+//	.ps2_kbd_data_out(PS2_DAT),
+//	
+//	.ps2_kbd_led_use(0),
+//	.ps2_kbd_led_status(0),
+//
+//	.sd_lba(sd_lba),
+//	.sd_rd(sd_rd),
+//	.sd_wr(sd_wr),
+//	.sd_ack(sd_ack),
+//	.sd_ack_conf(sd_ack_conf),
+//	.sd_buff_addr(sd_buff_addr),
+//	.sd_buff_dout(sd_buff_dout),
+//	.sd_buff_din(sd_buff_din),
+//	.sd_buff_wr(sd_buff_wr)
 );
 
 /////////////////  RESET  /////////////////////////
 
-wire reset = RESET | status[0] | buttons[1] | status[6];
+reg reset = 1;
+always @(posedge clk_sys) begin
+	integer   initRESET = 20000000;
+	reg [3:0] reset_cnt;
+
+	if ((!(RESET | status[0] | buttons[1] | status[6]) && reset_cnt==4'd14) && !initRESET)
+		reset <= 0;
+		
+	else begin
+		if(initRESET) initRESET <= initRESET - 1;
+		reset <= 1;
+		reset_cnt <= reset_cnt+4'd1;
+	end
+end
 
 ///////////////////////////////////////////////////
 
@@ -194,15 +202,15 @@ assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL = 1;
 
 Microcomputer Microcomputer(
-		.RESET_N(RESET),
-		.SDRAM_nCS(SDRAM_nCS),
+		.N_RESET(reset),
+		.clk(CLK_50M),
 		.VGA_R(VGA_R),
 		.VGA_G(VGA_G),
 		.VGA_B(VGA_B),
 		.VGA_HS(VGA_HS),
 		.VGA_VS(VGA_VS),
-		.ps2_clk(PS2_CLK),
-		.ps2_data(PS2_DAT),
+		//.ps2Clk(PS2_CLK),
+		//.ps2Data(PS2_DAT),
 );
 
 endmodule
