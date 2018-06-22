@@ -25,95 +25,6 @@
 
 set_global_assignment -name VERILOG_MACRO "LITE=1"
 
-
-
-#============================================================
-# ADC
-#============================================================
-
-#============================================================
-# ARDUINO
-#============================================================
-
-#============================================================
-# SDIO
-#============================================================
-
-
-
-#============================================================
-# VGA
-#============================================================
-
-
-
-
-
-
-#============================================================
-# AUDIO
-#============================================================
-
-#============================================================
-# SDRAM
-#============================================================
-
-
-
-
-
-#============================================================
-# I/O
-#============================================================
-
-
-
-#============================================================
-# CLOCK
-#============================================================
-
-#============================================================
-# HDMI
-#============================================================
-
-#============================================================
-# KEY
-#============================================================
-
-#============================================================
-# LED
-#============================================================
-
-#============================================================
-# SW
-#============================================================
-
-
-# -------------------------------------------------------------------------- #
-#
-# Copyright (C) 2017  Intel Corporation. All rights reserved.
-# Your use of Intel Corporation's design tools, logic functions
-# and other software and tools, and its AMPP partner logic
-# functions, and any output files from any of the foregoing
-# (including device programming or simulation files), and any
-# associated documentation or information are expressly subject
-# to the terms and conditions of the Intel Program License
-# Subscription Agreement, the Intel Quartus Prime License Agreement,
-# the Intel MegaCore Function License Agreement, or other
-# applicable license agreement, including, without limitation,
-# that your use is for the sole purpose of programming logic
-# devices manufactured by Intel and sold by Intel or its
-# authorized distributors.  Please refer to the applicable
-# agreement for further details.
-#
-# -------------------------------------------------------------------------- #
-#
-# Quartus Prime
-# Version 16.1.2 Build 203 01/18/2017 SJ Standard Edition
-# Date created = 01:53:32  April 20, 2017
-#
-# -------------------------------------------------------------------------- #
-
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEBA6U23I7
 set_global_assignment -name TOP_LEVEL_ENTITY sys_top
@@ -442,9 +353,9 @@ set_location_assignment PIN_W20 -to SW[3]
 
 set_global_assignment -name PRE_FLOW_SCRIPT_FILE "quartus_sh:sys/build_id.tcl"
 
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name CDF_FILE jtag.cdf
 set_global_assignment -name QIP_FILE sys/sys.qip
-set_global_assignment -name QSYS_FILE sys/vip.qsys
 set_global_assignment -name SYSTEMVERILOG_FILE MultiComp.sv
 set_global_assignment -name VHDL_FILE Microcomputer.vhd
 set_global_assignment -name VHDL_FILE Components/M6809/cpu09l.vhd
@@ -463,13 +374,12 @@ set_global_assignment -name VHDL_FILE Components/M6502/T65_MCode.vhd
 set_global_assignment -name VHDL_FILE Components/M6502/T65_ALU.vhd
 set_global_assignment -name VHDL_FILE Components/M6502/T65.vhd
 set_global_assignment -name VHDL_FILE Components/SDCARD/sd_controller.vhd
+set_global_assignment -name QIP_FILE Components/INTERNALRAM/InternalRam64K.qip
 set_global_assignment -name QIP_FILE ROMS/6502/M6502_BASIC_ROM.qip
 set_global_assignment -name QIP_FILE ROMS/Z80/Z80_BASIC_ROM.qip
 set_global_assignment -name QIP_FILE Components/TERMINAL/DisplayRam1K.qip
 set_global_assignment -name CDF_FILE output_files/m6502.cdf
 set_global_assignment -name QIP_FILE Components/TERMINAL/DisplayRam2K.qip
 set_global_assignment -name QIP_FILE Components/TERMINAL/CGABoldRomReduced.qip
-set_global_assignment -name QIP_FILE Components/INTERNALRAM/InternalRam4K.qip
 set_global_assignment -name QIP_FILE ROMS/6809/M6809_EXT_BASIC_ROM.qip
 set_global_assignment -name QIP_FILE ROMS/Z80/Z80_CPM_BASIC_ROM.qip
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

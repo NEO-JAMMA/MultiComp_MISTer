@@ -356,12 +356,6 @@ set_global_assignment -name QIP_FILE sys/sys.qip
 set_global_assignment -name QSYS_FILE sys/vip.qsys
 set_global_assignment -name SYSTEMVERILOG_FILE MultiComp.sv
 set_global_assignment -name VHDL_FILE Microcomputer.vhd
-set_global_assignment -name QIP_FILE Z80_CPM_BASIC_ROM.qip
-set_global_assignment -name VERILOG_FILE user_io.v
-set_global_assignment -name QIP_FILE Components/INTERNALRAM/InternalRam1K.qip
-set_global_assignment -name QIP_FILE Components/INTERNALRAM/InternalRam2K.qip
-set_global_assignment -name QIP_FILE Components/INTERNALRAM/InternalRam4K.qip
-set_global_assignment -name QIP_FILE Components/CLOCK/pllclk_ez.qip
 set_global_assignment -name VHDL_FILE Components/M6809/cpu09l.vhd
 set_global_assignment -name VHDL_FILE Components/TERMINAL/SBCTextDisplayRGB.vhd
 set_global_assignment -name VHDL_FILE Components/M6800/cpu68.vhd
@@ -382,6 +376,7 @@ set_global_assignment -name QIP_FILE ROMS/6502/M6502_BASIC_ROM.qip
 set_global_assignment -name QIP_FILE ROMS/Z80/Z80_BASIC_ROM.qip
 set_global_assignment -name QIP_FILE Components/TERMINAL/DisplayRam1K.qip
 set_global_assignment -name CDF_FILE output_files/m6502.cdf
+set_global_assignment -name QIP_FILE Components/INTERNALRAM/InternalRam64K.qip
 set_global_assignment -name QIP_FILE Components/TERMINAL/DisplayRam2K.qip
 set_global_assignment -name QIP_FILE Components/TERMINAL/CGABoldRomReduced.qip
 set_global_assignment -name QIP_FILE ROMS/6809/M6809_EXT_BASIC_ROM.qip

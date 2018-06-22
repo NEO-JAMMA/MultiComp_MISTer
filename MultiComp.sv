@@ -106,30 +106,20 @@ module emu
 
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = 0;
 
-assign LED_USER  = reset;
+assign LED_USER  = 0;
 assign LED_DISK  = 0;
 assign LED_POWER = 0;
 
-//assign VIDEO_ARX = 4;
-//assign VIDEO_ARY = 3;
+assign VIDEO_ARX = 4;
+assign VIDEO_ARY = 3;
 
 
 `include "build_id.v"
 localparam CONF_STR = {
 	"MultiComp;;"
 };
-
-
-////////////////////   CLOCKS   ///////////////////
-wire locked, clk_sys;
-pll pll
-(
-	.refclk(CLK_50M),
-	.rst(0),
-	.outclk_0(clk_sys),
-	.locked(locked)
-);
 
 
 //////////////////   HPS I/O   ///////////////////
@@ -153,7 +143,7 @@ wire        sd_ack_conf;
 
 hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
-	.clk_sys(clk_sys),
+	.clk_sys(CLK_50M),
 	.HPS_BUS(HPS_BUS),
 
 	.conf_str(CONF_STR),
@@ -162,12 +152,9 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.status(status),
 	.forced_scandoubler(forced_scandoubler),
 
-//	.ps2_kbd_clk_out(PS2_CLK),
-//	.ps2_kbd_data_out(PS2_DAT),
-//	
-//	.ps2_kbd_led_use(0),
-//	.ps2_kbd_led_status(0),
-//
+	.ps2_kbd_clk_out(PS2_CLK),
+	.ps2_kbd_data_out(PS2_DAT)
+
 //	.sd_lba(sd_lba),
 //	.sd_rd(sd_rd),
 //	.sd_wr(sd_wr),
@@ -181,37 +168,52 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 /////////////////  RESET  /////////////////////////
 
-reg reset = 1;
-always @(posedge clk_sys) begin
-	integer   initRESET = 20000000;
-	reg [3:0] reset_cnt;
-
-	if ((!(RESET | status[0] | buttons[1] | status[6]) && reset_cnt==4'd14) && !initRESET)
-		reset <= 0;
-		
-	else begin
-		if(initRESET) initRESET <= initRESET - 1;
-		reset <= 1;
-		reset_cnt <= reset_cnt+4'd1;
-	end
-end
+wire reset = RESET | status[0] | buttons[1];
 
 ///////////////////////////////////////////////////
 
-assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = 1;
+assign CLK_VIDEO = CLK_50M;
 
-Microcomputer Microcomputer(
-		.N_RESET(reset),
-		.clk(CLK_50M),
-		.VGA_R(VGA_R),
-		.VGA_G(VGA_G),
-		.VGA_B(VGA_B),
-		.VGA_HS(VGA_HS),
-		.VGA_VS(VGA_VS),
-		//.ps2Clk(PS2_CLK),
-		//.ps2Data(PS2_DAT),
+wire hblank, vblank;
+wire hs, vs;
+wire [1:0] r,g,b;
+
+Microcomputer Microcomputer
+(
+	.N_RESET(~reset),
+	.clk(CLK_50M),
+	.R(r),
+	.G(g),
+	.B(b),
+	.HS(hs),
+	.VS(vs),
+	.hBlank(hblank),
+	.vBlank(vblank),
+	.cepix(CE_PIXEL),
+	.ps2Clk(PS2_CLK),
+	.ps2Data(PS2_DAT)
 );
 
-endmodule
+video_cleaner video_cleaner
+(
+	.clk_vid(CLK_VIDEO),
+	.ce_pix(CE_PIXEL),
 
+	.R({4{r}}),
+	.G({4{g}}),
+	.B({4{b}}),
+	.HSync(hs),
+	.VSync(vs),
+	.HBlank(hblank),
+	.VBlank(vblank),
+
+	.VGA_R(VGA_R),
+	.VGA_G(VGA_G),
+	.VGA_B(VGA_B),
+	.VGA_VS(VGA_VS),
+	.VGA_HS(VGA_HS),
+	.VGA_DE(VGA_DE)
+);
+
+
+endmodule

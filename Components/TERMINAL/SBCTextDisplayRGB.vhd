@@ -59,14 +59,17 @@ entity SBCTextDisplayRGB is
 		videoB1	: out std_logic;
 		hSync  	: buffer  std_logic;
 		vSync  	: buffer  std_logic;
-		
+		hBlank	: out std_logic;
+		vBlank	: out std_logic;
+		cepix    : out std_logic;
+	
 		-- Monochrome video signals
 		video		: buffer std_logic;
 		sync  	: out  std_logic;		
 		
 		-- Keyboard signals
-		ps2Clk	: inout std_logic;
-		ps2Data	: inout std_logic;
+		ps2Clk	: in std_logic;
+		ps2Data	: in std_logic;
  
 		-- FN keys passed out as general signals (momentary and toggled versions)
 		FNkeys	: out std_logic_vector(12 downto 0);
@@ -372,24 +375,32 @@ end generate GEN_NO_ATTRAM;
 	dispAddr <= (startAddr + charHoriz+(charVert * HORIZ_CHARS)) mod CHARS_PER_SCREEN;
 	cursAddr <= (startAddr + cursorHoriz+(cursorVert * HORIZ_CHARS)) mod CHARS_PER_SCREEN;
 
-	sync <= vSync and hSync; -- composite sync for mono video out	
-	
+	sync <= vSync and hSync; -- composite sync for mono video out
+
 	-- SCREEN RENDERING
 	
 	process (clk)
 	begin
 		if falling_edge(clk) then
 
-			if horizCount < CLOCKS_PER_SCANLINE then
+			cepix <= '0';
+			if pixelClockCount < (CLOCKS_PER_PIXEL-1) then
+				pixelClockCount <= pixelClockCount+1;
+			else
+				pixelClockCount <= (others => '0');
+				cepix <= '1';
+			end if;
+			
+			if horizCount < (CLOCKS_PER_SCANLINE-1) then
 				horizCount <= horizCount + 1;
-				if (horizCount < DISPLAY_LEFT_CLOCK) or (horizCount > (DISPLAY_LEFT_CLOCK + HORIZ_CHARS*CLOCKS_PER_PIXEL*8)) then
+				if (horizCount < DISPLAY_LEFT_CLOCK) or (horizCount >= (DISPLAY_LEFT_CLOCK + HORIZ_CHARS*CLOCKS_PER_PIXEL*8)) then
 					hActive <= '0';
-					pixelClockCount <= (others => '0');
 					charHoriz <= 0;
 				else
 					hActive <= '1';
 				end if;
 			else
+				pixelClockCount <= (others => '0');
 				horizCount<= (others => '0');
 				pixelCount<= (others => '0');
 				charHoriz<= 0;
@@ -425,10 +436,11 @@ end generate GEN_NO_ATTRAM;
 				vSync <= not V_SYNC_ACTIVE;
 			end if;
 			
-			if hActive='1' and vActive = '1' then
-				if pixelClockCount <(CLOCKS_PER_PIXEL-1) then
-					pixelClockCount <= pixelClockCount+1;
-				else
+			if pixelClockCount = (CLOCKS_PER_PIXEL-1) then
+				vBlank <= not vActive;
+				hBlank <= not hActive;
+				if hActive='1' and vActive = '1' then
+
 					if cursorOn = '1' and cursorVert = charVert and cursorHoriz = charHoriz and charScanLine = (VERT_PIXEL_SCANLINES*8-1) then
 					   -- Cursor (use current colour because cursor cell not yet written to)
 						if dispAttData(3)='1' then -- BRIGHT
@@ -495,21 +507,20 @@ end generate GEN_NO_ATTRAM;
 						end if;
 						video <= charData(7-to_integer(unsigned(pixelCount))); -- Monochrome video out
 					end if;
-					pixelClockCount <= (others => '0');
 					if pixelCount = 7 then
 						charHoriz <= charHoriz+1;
 					end if;
 					pixelCount <= pixelCount+1;
+				else
+					videoR0 <= '0';
+					videoG0 <= '0';
+					videoB0 <= '0';
+					videoR1 <= '0';
+					videoG1 <= '0';
+					videoB1 <= '0';
+					
+					video <= '0'; -- Monochrome video out
 				end if;
-			else
-				videoR0 <= '0';
-				videoG0 <= '0';
-				videoB0 <= '0';
-				videoR1 <= '0';
-				videoG1 <= '0';
-				videoB1 <= '0';
-				
-				video <= '0'; -- Monochrome video out
 			end if;
 		end if;
 	end process;	
@@ -585,8 +596,8 @@ end generate GEN_NO_ATTRAM;
 
 	-- PROCESS DATA FROM PS2 KEYBOARD
 
-	ps2Data <= ps2DataOut when ps2DataOut='0' else 'Z';
-	ps2Clk <= ps2ClkOut when ps2ClkOut='0' else 'Z';
+--	ps2Data <= ps2DataOut when ps2DataOut='0' else 'Z';
+--	ps2Clk <= ps2ClkOut when ps2ClkOut='0' else 'Z';
 
 	-- PS2 clock de-glitcher - important because the FPGA is very sensistive
 	-- Filtered clock will not switch low to high until there is 50 more high samples than lows

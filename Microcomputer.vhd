@@ -42,23 +42,17 @@ entity Microcomputer is
 		videoSync	: out std_logic;
 		video			: out std_logic;
 
---		videoR0		: out std_logic;
---		videoG0		: out std_logic;
---		videoB0		: out std_logic;
---		videoR1		: out std_logic;
---		videoG1		: out std_logic;
---		videoB1		: out std_logic;
---		hSync			: out std_logic;
---		vSync			: out std_logic;
+		R       		: out std_logic_vector(1 downto 0);
+		G       		: out std_logic_vector(1 downto 0);
+		B       		: out std_logic_vector(1 downto 0);
+		HS		  		: out std_logic;
+		VS 			: out std_logic;
+		hBlank		: out std_logic;
+		vBlank		: out std_logic;
+		cepix  		: out std_logic;
 
-		VGA_R       : out std_logic_vector(5 downto 0);
-		VGA_G       : out std_logic_vector(5 downto 0);
-		VGA_B       : out std_logic_vector(5 downto 0);
-		VGA_HS		: out std_logic;
-		VGA_VS 		: out std_logic;
-
-		ps2Clk		: inout std_logic;
-		ps2Data		: inout std_logic;
+		ps2Clk		: in std_logic;
+		ps2Data		: in std_logic;
 
 		sdCS			: out std_logic;
 		sdMOSI		: out std_logic;
@@ -145,10 +139,10 @@ port map(
 -- ____________________________________________________________________________________
 -- RAM GOES HERE
 
-ram1: entity work.InternalRam4K
+ram1: entity work.InternalRam64K
 port map
 (
-	address => cpuAddress(11 downto 0),
+	address => cpuAddress(15 downto 0),
 	clock => clk,
 	data => cpuDataOut,
 	wren => not(n_memWR or n_internalRam1CS),
@@ -165,14 +159,17 @@ port map (
 	clk => clk,
 
 	-- RGB video signals
-	hSync => VGA_HS,
-	vSync => VGA_VS,
-   videoR0 => VGA_R(5),
-   videoR1 => VGA_R(4),
-   videoG0 => VGA_G(5),
-   videoG1 => VGA_G(4),
-   videoB0 => VGA_B(5),
-   videoB1 => VGA_B(4),
+	hSync => HS,
+	vSync => VS,
+   videoR0 => R(1),
+   videoR1 => R(0),
+   videoG0 => G(1),
+   videoG1 => G(0),
+   videoB0 => B(1),
+   videoB1 => B(0),
+	hBlank => hBlank,
+	vBlank => vBlank,
+	cepix => cepix,
 
 	-- Monochrome video signals (when using TV timings only)
 	sync => videoSync,
@@ -239,7 +236,7 @@ n_basRomCS <= '0' when cpuAddress(15 downto 13) = "000" else '1'; --8K at bottom
 n_interface1CS <= '0' when cpuAddress(7 downto 1) = "1000000" and (n_ioWR='0' or n_ioRD = '0') else '1'; -- 2 Bytes $80-$81
 n_interface2CS <= '0' when cpuAddress(7 downto 1) = "1000001" and (n_ioWR='0' or n_ioRD = '0') else '1'; -- 2 Bytes $82-$83
 n_sdCardCS <= '0' when cpuAddress(7 downto 3) = "10001" and (n_ioWR='0' or n_ioRD = '0') else '1'; -- 8 Bytes $88-$8F
-n_internalRam1CS <= '0' when cpuAddress(15 downto 12) = "0010" else '1';
+n_internalRam1CS <= not n_basRomCS; -- Full Internal RAM - 64 K
 
 -- ____________________________________________________________________________________
 -- BUS ISOLATION GOES HERE
