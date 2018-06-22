@@ -109,7 +109,7 @@ assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQM
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = 0;
 
 assign LED_USER  = 0;
-assign LED_DISK  = 0;
+assign LED_DISK  = ~driveLED;
 assign LED_POWER = 0;
 
 assign VIDEO_ARX = 4;
@@ -118,7 +118,11 @@ assign VIDEO_ARY = 3;
 
 `include "build_id.v"
 localparam CONF_STR = {
-	"MultiComp;;"
+	"MultiComp;;",
+	//"-;",
+	//"O79,CPU/ROM,Z80-CP/M,Z80-Basic,6502-Basic,6809-Basic;",
+	"-;",
+	"V,v1.0.",`BUILD_DATE
 };
 
 
@@ -154,16 +158,6 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 	.ps2_kbd_clk_out(PS2_CLK),
 	.ps2_kbd_data_out(PS2_DAT)
-
-//	.sd_lba(sd_lba),
-//	.sd_rd(sd_rd),
-//	.sd_wr(sd_wr),
-//	.sd_ack(sd_ack),
-//	.sd_ack_conf(sd_ack_conf),
-//	.sd_buff_addr(sd_buff_addr),
-//	.sd_buff_dout(sd_buff_dout),
-//	.sd_buff_din(sd_buff_din),
-//	.sd_buff_wr(sd_buff_wr)
 );
 
 /////////////////  RESET  /////////////////////////
@@ -177,8 +171,10 @@ assign CLK_VIDEO = CLK_50M;
 wire hblank, vblank;
 wire hs, vs;
 wire [1:0] r,g,b;
+wire driveLED;
+//wire [2:0] cpu_rom_type = status[9:7];
 
-Microcomputer Microcomputer
+ MicrocomputerZ80CPM
 (
 	.N_RESET(~reset),
 	.clk(CLK_50M),
@@ -191,9 +187,14 @@ Microcomputer Microcomputer
 	.vBlank(vblank),
 	.cepix(CE_PIXEL),
 	.ps2Clk(PS2_CLK),
-	.ps2Data(PS2_DAT)
+	.ps2Data(PS2_DAT),
+	.sdCS(SD_CS),
+	.sdMOSI(SD_MOSI),
+	.sdMISO(SD_MISO),
+	.sdSCLK(SD_SCK),
+	.driveLED(driveLED)
 );
-
+ 
 video_cleaner video_cleaner
 (
 	.clk_vid(CLK_VIDEO),

@@ -18,7 +18,7 @@ use ieee.std_logic_1164.all;
 use  IEEE.STD_LOGIC_ARITH.all;
 use  IEEE.STD_LOGIC_UNSIGNED.all;
 
-entity Microcomputer is
+entity MicrocomputerZ80CPM is
 	port(
 		N_RESET	   : in std_logic;
 		clk			: in std_logic;
@@ -60,9 +60,9 @@ entity Microcomputer is
 		sdSCLK		: out std_logic;
 		driveLED		: out std_logic :='1'	
 	);
-end Microcomputer;
+end MicrocomputerZ80CPM;
 
-architecture struct of Microcomputer is
+architecture struct of MicrocomputerZ80CPM is
 
 	signal n_WR							: std_logic;
 	signal n_RD							: std_logic;
@@ -104,8 +104,21 @@ architecture struct of Microcomputer is
 	signal serialClock				: std_logic;
 	signal sdClock						: std_logic;
 
-begin
+	--CPM
+	signal n_RomActive 				: std_logic := '0';
 
+begin
+	--CPM
+	-- Disable ROM if out 38. Re-enable when (asynchronous) reset pressed
+	process (n_ioWR, n_reset) begin
+		if (n_reset = '0') then
+			n_RomActive <= '0';
+		elsif (rising_edge(n_ioWR)) then
+			if cpuAddress(7 downto 0) = "00111000" then -- $38
+				n_RomActive <= '1';
+			end if;
+		end if;
+	end process;
 -- ____________________________________________________________________________________
 -- CPU CHOICE GOES HERE
 
@@ -129,7 +142,7 @@ port map(
 -- ____________________________________________________________________________________
 -- ROM GOES HERE	
 
-rom1 : entity work.Z80_BASIC_ROM -- 8KB BASIC
+rom1 : entity work.Z80_CPM_BASIC_ROM
 port map(
 	address => cpuAddress(12 downto 0),
 	clock => clk,
@@ -183,6 +196,8 @@ port map (
 	dataOut => interface1DataOut,
 	ps2Clk => ps2Clk,
 	ps2Data => ps2Data
+	
+	
 );
 
 io2 : entity work.bufferedUART
@@ -232,7 +247,7 @@ n_memRD <= n_RD or n_MREQ;
 -- CHIP SELECTS GO HERE
 
 
-n_basRomCS <= '0' when cpuAddress(15 downto 13) = "000" else '1'; --8K at bottom of memory
+n_basRomCS <= '0' when cpuAddress(15 downto 13) = "000" and n_RomActive = '0' else '1'; --8K at bottom of memory
 n_interface1CS <= '0' when cpuAddress(7 downto 1) = "1000000" and (n_ioWR='0' or n_ioRD = '0') else '1'; -- 2 Bytes $80-$81
 n_interface2CS <= '0' when cpuAddress(7 downto 1) = "1000001" and (n_ioWR='0' or n_ioRD = '0') else '1'; -- 2 Bytes $82-$83
 n_sdCardCS <= '0' when cpuAddress(7 downto 3) = "10001" and (n_ioWR='0' or n_ioRD = '0') else '1'; -- 8 Bytes $88-$8F
