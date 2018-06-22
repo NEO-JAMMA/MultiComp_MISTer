@@ -6,6 +6,11 @@ Port of Grant Searle's MultiComp to the MiSTer
 For convenience you can use the Multicomp FPGA - CP/M Demo Disk from Obsolescence Guaranteed:
 http://obsolescence.wixsite.com/obsolescence/multicomp-fpga-cpm-demo-disk
 
+After you have flash the CP/M Demo Disk to the SD Card you will have to use the secondary SD Card on the MiSTer on I/O Board:
+https://github.com/MiSTer-devel/Main_MiSTer/wiki/IO-Board
+
+Using CP/M - from Grant Searle website:
+http://searle.hostei.com/grant/Multicomp/cpm/fpgaCPM.html#UsingTheMachine
 
 ## License
 
@@ -27,4 +32,4 @@ Grant Searle
 [Grant's MULTICOMP pick and mix computer](http://searle.hostei.com/grant/Multicomp/index.html)
 
 ## Note
-It is a work in progress MISTer MultiComp is not working yet.
+For now only the Z80 CP/M version of the MulitiComp is working. Other CPU/OS will be implemented in the future.
